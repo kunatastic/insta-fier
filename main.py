@@ -82,11 +82,17 @@ def check(driver,post_time):
     # time.sleep(10)
     while(True):
         # base xpath for the images component
-        base_path  ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div["+str(count)+"]"
+        base_path  ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div["+str(count)+"]"
         # normal   ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div[1]/a/div/div[2]/div[2]/div/div/time"
         # business ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div[2]/a/div/div[2]/div[2]/div/div/time"
 
-            # print("YAHA GadBadi HAI")
+        # Scroll
+        I = driver.find_element_by_xpath(base_path)
+        a = ActionChains(driver)
+        a.move_to_element(I).perform()
+        time.sleep(2)
+
+        # print("YAHA GadBadi HAI")
         # time of story uploading
         msg_time = driver.find_element_by_xpath(base_path+"/a/div/div[2]/div[2]/div/div/time")
         story_time = msg_time.get_attribute("datetime")
@@ -107,6 +113,7 @@ def check(driver,post_time):
             visible_msg = driver.find_element_by_xpath(base_path+"/a/div/div[2]/div[2]/div/div/span[1]/span")
             validation(driver,members_name.text,unread_msg,visible_msg.text,base_path,file)
         count+=1
+        time.sleep(2)
 
 
 # sends the confirmation message
@@ -137,13 +144,58 @@ def time_of_recent_post(driver,url):
     return recent_post_mod
 
 
+# scroll :STRESSED VOICES ALL OVER
+def scroll(driver):
+    print("WAITING....")
+    prev_person = None
+    index = 0
+    while(True):
+        time.sleep(2)
+        print("HELLO!!! I'm Scroller I scroll instagram for you")
+        #"/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
+        parent = driver.find_elements_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article")
+        names = []
+        for child in parent:
+            # "/div"
+            names.append(child.find_element_by_xpath("./header/div[2]/div[1]/div/span/a").text)
+        print(names)
+
+        if (prev_person == None):
+            prev_person = names[0]
+            index = 0
+        else:
+            prev_person_index = names.index(prev_person)
+            prev_person = names[prev_person_index]
+            index = prev_person_index+1
+
+        base_path = index+1
+
+        i = driver.find_element_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article["+str(index+1)+"]")
+        tezt = (driver.find_element_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article["+str()+"]/header/div[2]/div[1]/div/span/a"))
+        print(tezt.text)
+        a = ActionChains(driver)
+        a.move_to_element(i).perform()
+
+
+        time.sleep(0.5)
+
+# SCROLL REAL
+# "/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div[2]"
+
+def block():
+    while(True):
+        print(1,end="")
+
 # driver
 def main():
     url = "https://www.instagram.com/p/CPDpgNtLwVD/"
     driver = init()
     login(driver)
-    post_time = time_of_recent_post(driver,url)
-    check(driver,post_time)
-
+    # post_time = time_of_recent_post(driver,url)
+    # check(driver,post_time)
+    scroll(driver)
+    block()
+# "/html/body/div[1]/section/main/section/div/div[2]/div/article[1]"
+# "/html/body/div[1]/section/main/section/div/div[2]/div/article[3]"
 if __name__ == '__main__':
     main()
