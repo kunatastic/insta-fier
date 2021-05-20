@@ -73,49 +73,6 @@ def check_xpath(driver,path):
     return True
 
 
-# brain: checks the previous messages
-def check(driver,post_time):
-    count = 1
-    open_messages(driver)
-    file = open("A.txt",'a')
-    file.writelines(str(datetime.datetime.now())+"\n")
-    # time.sleep(10)
-    while(True):
-        # base xpath for the images component
-        base_path  ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div["+str(count)+"]"
-        # normal   ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div[1]/a/div/div[2]/div[2]/div/div/time"
-        # business ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div[2]/a/div/div[2]/div[2]/div/div/time"
-
-        # Scroll
-        I = driver.find_element_by_xpath(base_path)
-        a = ActionChains(driver)
-        a.move_to_element(I).perform()
-        time.sleep(2)
-
-        # print("YAHA GadBadi HAI")
-        # time of story uploading
-        msg_time = driver.find_element_by_xpath(base_path+"/a/div/div[2]/div[2]/div/div/time")
-        story_time = msg_time.get_attribute("datetime")
-        story_time_mod = datetime.datetime.strptime(story_time , '%Y-%m-%dT%H:%M:%S.%fZ')
-        if (story_time_mod < post_time):
-            file.close()
-            break
-        # print("YAHA BHI")
-
-        # username extraction
-        members_name = driver.find_element_by_xpath(base_path+"/a/div/div[2]/div[1]/div/div/div/div")
-        members_username = members_name.text
-        print("MEMBERS:",members_username)
-        # username validation and verification
-        if (members_username in members):
-            # print("MEMBERS:",members_username)
-            unread_msg = check_xpath(driver,base_path+"/a/div/div[3]/div")
-            visible_msg = driver.find_element_by_xpath(base_path+"/a/div/div[2]/div[2]/div/div/span[1]/span")
-            validation(driver,members_name.text,unread_msg,visible_msg.text,base_path,file)
-        count+=1
-        time.sleep(2)
-
-
 # sends the confirmation message
 def send_confirmation(driver,base_path):
     dm_page = driver.find_element_by_xpath(base_path+"/a/div").click()
@@ -144,58 +101,80 @@ def time_of_recent_post(driver,url):
     return recent_post_mod
 
 
-# scroll :STRESSED VOICES ALL OVER
-def scroll(driver):
+# scroll AKA brain 2.0: *STRESSED VOICES ALL OVER*
+# brain: checks the previous messages
+def brain(driver,post_time):
+    open_messages(driver)
+
+    file = open("A.txt",'a')
+    file.writelines(str(datetime.datetime.now())+"\n")
+
     print("WAITING....")
     prev_person = None
     index = 0
     while(True):
         time.sleep(2)
-        print("HELLO!!! I'm Scroller I scroll instagram for you")
-        #"/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
-        parent = driver.find_elements_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article")
+        # print("HELLO!!! I'm Scroller I scroll instagram for you")
+
+        parent_base_path     ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
+        # business_base_path ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
+        # normal_base_path   ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div"
+
+        parent = driver.find_elements_by_xpath(parent_base_path)
+        # print(len(parent))
         names = []
-        for child in parent:
-            # "/div"
-            names.append(child.find_element_by_xpath("./header/div[2]/div[1]/div/span/a").text)
-        print(names)
+        for child in range(len(parent)-1):
+            names.append(driver.find_element_by_xpath(parent_base_path+"["+str(child+1)+"]/a/div/div[2]/div[1]/div/div/div/div").text)
+        # print(names)
 
-        if (prev_person == None):
-            prev_person = names[0]
-            index = 0
-        else:
-            prev_person_index = names.index(prev_person)
-            prev_person = names[prev_person_index]
-            index = prev_person_index+1
+        if (prev_person != None):
+            index = names.index(prev_person)+1
 
-        base_path = index+1
+        # base_path of the user
+        base_path = parent_base_path+"["+str(index+1)+"]"
 
-        i = driver.find_element_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article["+str(index+1)+"]")
-        tezt = (driver.find_element_by_xpath("/html/body/div[1]/section/main/section/div/div[2]/div/article["+str()+"]/header/div[2]/div[1]/div/span/a"))
-        print(tezt.text)
+        # time of story uploading
+        msg_time = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/time")
+        story_time = msg_time.get_attribute("datetime")
+        story_time_mod = datetime.datetime.strptime(story_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+        if (story_time_mod < post_time):
+            print("SAFELY QUITTING...")
+            file.close()
+            exit(1)
+            break
+
+        # username extraction
+        members_name = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[1]/div/div/div/div")
+        members_username = members_name.text
+        # print("MEMBERS:", members_username)
+
+        # username validation and verification
+        if (members_username in members):
+            print("OWASP MEMBERS:",members_username)
+            unread_msg = check_xpath(driver, base_path + "/a/div/div[3]/div")
+            visible_msg = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/span[1]/span")
+            validation(driver, members_name.text, unread_msg, visible_msg.text, base_path, file)
+
+        i = driver.find_element_by_xpath(parent_base_path+"["+str(index+1)+"]")
         a = ActionChains(driver)
         a.move_to_element(i).perform()
-
-
+        prev_person = names[index]
         time.sleep(0.5)
+        print()
+    # block()
 
-# SCROLL REAL
-# "/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div[2]"
 
 def block():
+    num = 0
     while(True):
-        print(1,end="")
-
+        num+=1
 # driver
 def main():
     url = "https://www.instagram.com/p/CPDpgNtLwVD/"
     driver = init()
     login(driver)
-    # post_time = time_of_recent_post(driver,url)
-    # check(driver,post_time)
-    scroll(driver)
-    block()
-# "/html/body/div[1]/section/main/section/div/div[2]/div/article[1]"
-# "/html/body/div[1]/section/main/section/div/div[2]/div/article[3]"
+    post_time = time_of_recent_post(driver,url)
+    brain(driver,post_time)
+
 if __name__ == '__main__':
     main()
