@@ -6,6 +6,7 @@ from selenium.webdriver import ActionChains
 from credentials import user_name,password
 from names import members
 
+filename = 'owasp.txt'
 
 # initializing selenium
 def init():
@@ -13,7 +14,6 @@ def init():
     driver_var = webdriver.Chrome(path)
     driver_var.maximize_window()
     return driver_var
-
 
 # instagram login
 def login(driver):
@@ -56,13 +56,11 @@ def login(driver):
     print("logged in")
     time.sleep(2)
 
-
 #open the messaging tab
 def open_messages(driver):
    driver.get("https://www.instagram.com/direct/inbox/")
    print("Messages Opened")
    time.sleep(5)
-
 
 # _utility: check if the xpath exists
 def check_xpath(driver,path):
@@ -72,7 +70,6 @@ def check_xpath(driver,path):
         return False
     return True
 
-
 # sends the confirmation message
 def send_confirmation(driver,base_path):
     dm_page = driver.find_element_by_xpath(base_path+"/a/div").click()
@@ -81,14 +78,14 @@ def send_confirmation(driver,base_path):
     textarea.send_keys("[OWASP BOT]: Thank you for sharing our Story.\n")
     driver.back()
 
-
 # validates the users
-def validation(driver,username,unread,visible_text,base_path,file):
+def validation(driver,username,unread,visible_text,base_path):
     if unread and visible_text == "Mentioned you in their story":
-        send_confirmation(driver,base_path)
+        # send_confirmation(driver,base_path)
         print(username)
+        file.open(filename,'a')
         file.writelines(username+"\n")
-
+        file.close()
 
 # gets the time of the recent post
 def time_of_recent_post(driver,url):
@@ -100,15 +97,14 @@ def time_of_recent_post(driver,url):
     print(recent_post_mod)
     return recent_post_mod
 
-
+# brain: scroll n verifies the users
 # scroll AKA brain 2.0: *STRESSED VOICES ALL OVER*
-# brain: checks the previous messages
 def brain(driver,post_time):
     open_messages(driver)
 
-    file = open("A.txt",'a')
+    file = open(filename,'a')
     file.writelines(str(datetime.datetime.now())+"\n")
-
+    file.close()
     print("WAITING....")
     prev_person = None
     index = 0
@@ -124,8 +120,10 @@ def brain(driver,post_time):
         # print(len(parent))
         names = []
         for child in range(len(parent)-1):
-            names.append(driver.find_element_by_xpath(parent_base_path+"["+str(child+1)+"]/a/div/div[2]/div[1]/div/div/div/div").text)
-        # print(names)
+            name = (driver.find_element_by_xpath(parent_base_path+"["+str(child+1)+"]/a/div/div[2]/div[1]/div/div/div/div").text)
+            if (name!=''):
+                names.append(name)
+        print(names)
 
         if (prev_person != None):
             index = names.index(prev_person)+1
@@ -139,38 +137,38 @@ def brain(driver,post_time):
         story_time_mod = datetime.datetime.strptime(story_time, '%Y-%m-%dT%H:%M:%S.%fZ')
         if (story_time_mod < post_time):
             print("SAFELY QUITTING...")
-            file.close()
             exit(1)
             break
 
         # username extraction
         members_name = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[1]/div/div/div/div")
         members_username = members_name.text
-        # print("MEMBERS:", members_username)
+        print("MEMBERS:", members_username)
 
         # username validation and verification
         if (members_username in members):
             print("OWASP MEMBERS:",members_username)
             unread_msg = check_xpath(driver, base_path + "/a/div/div[3]/div")
             visible_msg = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/span[1]/span")
-            validation(driver, members_name.text, unread_msg, visible_msg.text, base_path, file)
+            validation(driver, members_name.text, unread_msg, visible_msg.text, base_path)
 
-        i = driver.find_element_by_xpath(parent_base_path+"["+str(index+1)+"]")
+        i = driver.find_element_by_xpath(parent_base_path+"["+str(index+5)+"]")
         a = ActionChains(driver)
         a.move_to_element(i).perform()
         prev_person = names[index]
-        time.sleep(0.5)
+        time.sleep(2)
         print()
     # block()
 
-
+# this is a blocker to stop the browser from closing
 def block():
     num = 0
     while(True):
         num+=1
+
 # driver
 def main():
-    url = "https://www.instagram.com/p/CPDpgNtLwVD/"
+    url = "https://www.instagram.com/p/CPGLc45rYwb/"
     driver = init()
     login(driver)
     post_time = time_of_recent_post(driver,url)
