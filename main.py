@@ -185,7 +185,7 @@ def block():
 
 # driver
 def main():
-    url = "https://www.instagram.com/p/CPLeMQQrrgw/"
+    url = "" #change the url to our latest post
     driver = init()
     login(driver)
     post_time = time_of_recent_post(driver,url)
