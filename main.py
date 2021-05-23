@@ -6,7 +6,7 @@ from selenium.webdriver import ActionChains
 from credentials import user_name,password
 from names import members
 
-filename = 'owasp.txt'
+filename = 'owasp1.txt'
 
 # initializing selenium
 def init():
@@ -74,16 +74,18 @@ def check_xpath(driver,path):
 def send_confirmation(driver,base_path):
     dm_page = driver.find_element_by_xpath(base_path+"/a/div").click()
     time.sleep(1)
-    textarea = driver.find_element_by_xpath("/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea")
-    textarea.send_keys("[OWASP BOT]: Thank you for sharing our Story.\n")
+    # textarea = driver.find_element_by_xpath("/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea")
+    # textarea.send_keys("[OWASP BOT]: Thank you for sharing our Story.\n")
     driver.back()
 
 # validates the users
-def validation(driver,username,unread,visible_text,base_path):
-    if unread and visible_text == "Mentioned you in their story":
-        # send_confirmation(driver,base_path)
+def validation(driver,username,base_path):
+    unread_msg = check_xpath(driver, base_path + "/a/div/div[3]/div")
+    visible_msg = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/span[1]/span").text
+    if unread_msg and visible_msg == "Mentioned you in their story":
+        send_confirmation(driver,base_path)
         print(username)
-        file.open(filename,'a')
+        file = open(filename,'a')
         file.writelines(username+"\n")
         file.close()
 
@@ -97,6 +99,19 @@ def time_of_recent_post(driver,url):
     print(recent_post_mod)
     return recent_post_mod
 
+#finds parent
+def parentlist(driver,parent_base_path):
+    parent = driver.find_elements_by_xpath(parent_base_path)
+    # print(len(parent))
+    names = []
+    for child in range(len(parent) - 1):
+        name = (driver.find_element_by_xpath(
+            parent_base_path + "[" + str(child + 1) + "]/a/div/div[2]/div[1]/div/div/div/div").text)
+        if (name != ''):
+            names.append(name)
+    print(names)
+    return names
+
 # brain: scroll n verifies the users
 # scroll AKA brain 2.0: *STRESSED VOICES ALL OVER*
 def brain(driver,post_time):
@@ -109,21 +124,26 @@ def brain(driver,post_time):
     prev_person = None
     index = 0
     while(True):
-        time.sleep(2)
+        time.sleep(1)
         # print("HELLO!!! I'm Scroller I scroll instagram for you")
 
         parent_base_path     ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
         # business_base_path ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
         # normal_base_path   ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div"
 
-        parent = driver.find_elements_by_xpath(parent_base_path)
-        # print(len(parent))
-        names = []
-        for child in range(len(parent)-1):
-            name = (driver.find_element_by_xpath(parent_base_path+"["+str(child+1)+"]/a/div/div[2]/div[1]/div/div/div/div").text)
-            if (name!=''):
-                names.append(name)
-        print(names)
+        names = parentlist(driver,parent_base_path)
+
+        if prev_person != None and prev_person not in names:
+            print(prev_person)
+            while True:
+                names = parentlist(driver,parent_base_path)
+                i = driver.find_element_by_xpath(parent_base_path + "[" + str(index + 7) + "]")
+                a = ActionChains(driver)
+                a.move_to_element(i).perform()
+                print("PANIC FUNCTION ACTIVATED")
+                time.sleep(0.5)
+                if prev_person in names and names[-1]!=prev_person:
+                    break
 
         if (prev_person != None):
             index = names.index(prev_person)+1
@@ -148,15 +168,12 @@ def brain(driver,post_time):
         # username validation and verification
         if (members_username in members):
             print("OWASP MEMBERS:",members_username)
-            unread_msg = check_xpath(driver, base_path + "/a/div/div[3]/div")
-            visible_msg = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/span[1]/span")
-            validation(driver, members_name.text, unread_msg, visible_msg.text, base_path)
+            validation(driver, members_name.text,base_path)
 
         i = driver.find_element_by_xpath(parent_base_path+"["+str(index+5)+"]")
         a = ActionChains(driver)
         a.move_to_element(i).perform()
         prev_person = names[index]
-        time.sleep(2)
         print()
     # block()
 
@@ -168,7 +185,7 @@ def block():
 
 # driver
 def main():
-    url = "https://www.instagram.com/p/CPGLc45rYwb/"
+    url = "https://www.instagram.com/p/CPLeMQQrrgw/"
     driver = init()
     login(driver)
     post_time = time_of_recent_post(driver,url)
