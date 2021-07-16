@@ -16,7 +16,7 @@ This is an automated Selenium based Web Scrapping Bot.
 ### Requirement
 
    1. Selenium `pip install selenium`
-   2. Download the ![Chrome Web Browser](https://chromedriver.chromium.org/) according to Browser's Version
+   2. Download the [Chrome WebBrowser Driver](https://chromedriver.chromium.org/) according to Browser's Version
    3. Set the instagram credentials in `credentials.py`.
 
      user_name = ""  # INSTAGRAM USERNAME

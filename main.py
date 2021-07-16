@@ -4,9 +4,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import ActionChains
 from credentials import user_name,password
-from names import members
+from names import members,cabinents
+import random
 
-filename = 'owasp1.txt'
+filename = 'owasp5.txt'
 
 # initializing selenium
 def init():
@@ -19,7 +20,7 @@ def init():
 def login(driver):
     driver.get("https://www.instagram.com/")
 
-    time.sleep(2)
+    time.sleep(random.uniform(2,5))
     # credentials
     try:
         login_username = driver.find_element_by_xpath(
@@ -35,32 +36,39 @@ def login(driver):
         print("Either password is wrong or Instagram has IP banned you")
 
 
-    time.sleep(5)
-    # don't save password
-    try:
-        not_now = driver.find_element_by_xpath("/html/body/div[1]/section/main/div/div/div/div/button")
-        not_now.click()
-    except:
-        print("The page has not loaded yet increase the sleep above")
+    ''' No need ByPassed 15.07.2021 '''
+
+    # time.sleep(random.uniform(4,7))
+    # # don't save password
+    # try:
+    #     not_now = driver.find_element_by_xpath("/html/body/div[1]/section/main/div/div/div/div/button")
+    #     not_now.click()
+    # except:
+    #     print("The page has not loaded yet increase the sleep above")
 
 
-    time.sleep(2)
-    # disable notification
-    try:
-        disable_noti = driver.find_element_by_xpath("/html/body/div[4]/div/div/div/div[3]/button[2]")
-        disable_noti.click()
-    except:
-        print("Clicked button already")
+    ''' No need ByPassed 15.07.2021 '''
+
+    # time.sleep(random.uniform(2, 5))
+    # # disable notification
+    # try:
+    #     # / html / body / div[5] / div / div / div / div[3] / button[2]
+    #     disable_noti = driver.find_element_by_xpath("/html/body/div[4]/div/div/div/div[3]/button[2]")
+    #     disable_noti.click()
+    # except:
+    #     print("Clicked button already")
 
 
+    time.sleep(random.uniform(5, 10))
     print("logged in")
-    time.sleep(2)
+
 
 #open the messaging tab
 def open_messages(driver):
    driver.get("https://www.instagram.com/direct/inbox/")
    print("Messages Opened")
-   time.sleep(5)
+   time.sleep(random.uniform(4, 7))
+
 
 # _utility: check if the xpath exists
 def check_xpath(driver,path):
@@ -73,9 +81,10 @@ def check_xpath(driver,path):
 # sends the confirmation message
 def send_confirmation(driver,base_path):
     dm_page = driver.find_element_by_xpath(base_path+"/a/div").click()
-    time.sleep(1)
-    # textarea = driver.find_element_by_xpath("/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea")
-    # textarea.send_keys("[OWASP BOT]: Thank you for sharing our Story.\n")
+    time.sleep(random.uniform(1, 3))
+    textarea = driver.find_element_by_xpath("/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea")
+    textarea.send_keys("[OWASP BOT(test3)]: Thank you for sharing our Story.\n")
+    # textarea.send_keys("BOT TESTING 123 I Guess you will never check my msgs. PEACE.\n")
     driver.back()
 
 # validates the users
@@ -83,18 +92,21 @@ def validation(driver,username,base_path):
     unread_msg = check_xpath(driver, base_path + "/a/div/div[3]/div")
     visible_msg = driver.find_element_by_xpath(base_path + "/a/div/div[2]/div[2]/div/div/span[1]/span").text
     if unread_msg and visible_msg == "Mentioned you in their story":
+    # if (visible_msg!="BOT TESTING 123 I Guess you will never check my msgs. PEACE."):
         send_confirmation(driver,base_path)
         print(username)
         file = open(filename,'a')
         file.writelines(username+"\n")
         file.close()
+        return True
+    return False
 
 # gets the time of the recent post
 def time_of_recent_post(driver,url):
     driver.get(url)
-    time.sleep(2)
-    post_time = driver.find_element_by_xpath("/html/body/div[1]/section/main/div/div[1]/article/div[3]/div[2]/a/time")
-    recent_post = post_time.get_attribute("datetime")
+    time.sleep(random.uniform(2, 4))
+    something = driver.find_elements_by_tag_name("time")
+    recent_post = something[0].get_attribute("datetime")
     recent_post_mod = datetime.datetime.strptime(recent_post, '%Y-%m-%dT%H:%M:%S.%fZ')
     print(recent_post_mod)
     return recent_post_mod
@@ -117,33 +129,32 @@ def parentlist(driver,parent_base_path):
 def brain(driver,post_time):
     open_messages(driver)
 
-    file = open(filename,'a')
-    file.writelines(str(datetime.datetime.now())+"\n")
-    file.close()
-    print("WAITING....")
+    print("\nWAITING....\n\n")
     prev_person = None
     index = 0
+    time.sleep(random.uniform(1, 4))
+
     while(True):
-        time.sleep(1)
+        time.sleep(random.uniform(1,3))
         # print("HELLO!!! I'm Scroller I scroll instagram for you")
 
-        parent_base_path     ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
+        parent_base_path     ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div"
         # business_base_path ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[3]/div/div/div/div/div"
         # normal_base_path   ="/html/body/div[1]/section/div/div[2]/div/div/div[1]/div[2]/div/div/div/div/div"
 
         names = parentlist(driver,parent_base_path)
 
-        if prev_person != None and prev_person not in names:
-            print(prev_person)
-            while True:
-                names = parentlist(driver,parent_base_path)
-                i = driver.find_element_by_xpath(parent_base_path + "[" + str(index + 7) + "]")
-                a = ActionChains(driver)
-                a.move_to_element(i).perform()
-                print("PANIC FUNCTION ACTIVATED")
-                time.sleep(0.5)
-                if prev_person in names and names[-1]!=prev_person:
-                    break
+        # if prev_person != None and prev_person not in names:
+        #     print(prev_person)
+        #     while True:
+        #         names = parentlist(driver,parent_base_path)
+        #         i = driver.find_element_by_xpath(parent_base_path + "[" + str(index + 7) + "]")
+        #         a = ActionChains(driver)
+        #         a.move_to_element(i).perform()
+        #         print("PANIC FUNCTION ACTIVATED")
+        #         time.sleep(0.5)
+        #         if prev_person in names and names[-1]!=prev_person:
+        #             break
 
         if (prev_person != None):
             index = names.index(prev_person)+1
@@ -157,7 +168,8 @@ def brain(driver,post_time):
         story_time_mod = datetime.datetime.strptime(story_time, '%Y-%m-%dT%H:%M:%S.%fZ')
         if (story_time_mod < post_time):
             print("SAFELY QUITTING...")
-            exit(1)
+            # exit(1)
+            return True
             break
 
         # username extraction
@@ -166,30 +178,38 @@ def brain(driver,post_time):
         print("MEMBERS:", members_username)
 
         # username validation and verification
-        if (members_username in members):
+        if (members_username in members) or (members_name in cabinents):
             print("OWASP MEMBERS:",members_username)
-            validation(driver, members_name.text,base_path)
+            status = validation(driver, members_name.text,base_path)
+            if (status):
+                return False
 
         i = driver.find_element_by_xpath(parent_base_path+"["+str(index+5)+"]")
         a = ActionChains(driver)
         a.move_to_element(i).perform()
         prev_person = names[index]
         print()
-    # block()
 
 # this is a blocker to stop the browser from closing
 def block():
-    num = 0
-    while(True):
-        num+=1
+    print("Successfully Exited")
+    raise ValueError('Development Block.')
 
 # driver
 def main():
-    url = "" #change the url to our latest post
+    url = "https://www.instagram.com/p/CQ1CfrzL563/" #change the url to our latest post
     driver = init()
     login(driver)
     post_time = time_of_recent_post(driver,url)
-    brain(driver,post_time)
+    file = open(filename,'a')
+    file.writelines("\n"+str(datetime.datetime.now())+"\n\n")
+    file.close()
+    while True:
+        terms_of_exits = brain(driver,post_time)
+        print(terms_of_exits,"phewwww")
+        if (terms_of_exits):
+            break
+    block()
 
 if __name__ == '__main__':
     main()
